@@ -30,7 +30,7 @@ export async function qldFetchLatest({ q, fuel }) {
       source: 'QLD_DATA'
     }))
     .filter(s => Number.isFinite(s.lat) && Number.isFinite(s.lng))
-    .map(s => ({ ...s, prices: f in (s.prices||{}) ? s.prices : s.prices })); // keep all fuels
+    .map(s => ({ ...s, prices: f in (s.prices || {}) ? s.prices : s.prices })); // keep all fuels
 }
 
 function buildPricesQLD(r) {
