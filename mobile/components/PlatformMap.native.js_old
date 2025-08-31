@@ -1,0 +1,121 @@
+import React, { useMemo, useRef, useEffect } from 'react';
+import { View, StyleSheet, Pressable, Text } from 'react-native';
+import { WebView } from 'react-native-webview';
+
+const MELBOURNE_DEFAULT = {
+  latitude: -37.8136,
+  longitude: 144.9631,
+  latitudeDelta: 0.25,
+  longitudeDelta: 0.25,
+};
+
+export default function PlatformMap({ region, markers = [], onMarkerPress }) {
+  const webRef = useRef(null);
+
+  const html = `
+<!doctype html>
+<html>
+<head>
+  <!-- head kept same -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <style>
+    html,body,#map { height:100%; margin:0; padding:0; }
+    .leaflet-container { touch-action: auto !important; }
+    .price-pin { background:#000; color:#fff; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:700; border:2px solid #fff; box-shadow:0 1px 2px rgba(0,0,0,.35); white-space:nowrap; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+(function(){
+  const initial = { lat: ${Number(region.latitude)}, lng: ${Number(region.longitude)}, zoom: 13 };
+  let data = ${JSON.stringify(markers)};
+
+  const map = L.map('map').setView([initial.lat, initial.lng], initial.zoom);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
+  const layer = L.layerGroup().addTo(map);
+
+  function priceLabel(m){ return (typeof m.price==='number'&&isFinite(m.price)) ? ('$'+m.price.toFixed(2)) : (m.title||'Station'); }
+
+  function renderMarkers(){
+    layer.clearLayers();
+    (data||[]).forEach(m=>{
+      if(!isFinite(m.latitude)||!isFinite(m.longitude)) return;
+      const icon = L.divIcon({ html:'<div class="price-pin">'+priceLabel(m)+'</div>', className:'', iconSize:[10,10], iconAnchor:[10,10] });
+      const mk = L.marker([m.latitude, m.longitude], { icon }).addTo(layer);
+      if(m.title) mk.bindPopup(m.title);
+      mk.on('click', ()=>{ window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({type:'marker', id:m.id})); });
+    });
+  }
+
+  function fitToMarkers(){
+    if(!data || !data.length) return;
+    const bounds = L.latLngBounds(data.filter(m=>isFinite(m.latitude)&&isFinite(m.longitude)).map(m=>[m.latitude,m.longitude]));
+    if(bounds.isValid()) map.fitBounds(bounds, { padding:[60,60] });
+  }
+
+  // ✅ RN -> Web entry point
+  window.__fromRN = function(msg){
+    try{
+      if(msg && msg.type === 'setMarkers' && Array.isArray(msg.data)){
+        data = msg.data;
+        renderMarkers();
+      } else if (msg && msg.type === 'fit'){
+        fitToMarkers();
+      }
+    }catch(e){}
+  };
+
+  // initial draw
+  renderMarkers();
+  fitToMarkers();
+})();
+</script>
+</body>
+</html>`;
+
+  // RN -> Web: use injectJavaScript, NOT postMessage
+  const sendToWeb = (msgObj) => {
+    if (!webRef.current) return;
+    const js = `window.__fromRN(${JSON.stringify(msgObj)}); true;`;
+    webRef.current.injectJavaScript(js);
+  };
+
+  // When markers change, push to web + (optionally) refit
+  useEffect(() => {
+    sendToWeb({ type: 'setMarkers', data: markers });
+    sendToWeb({ type: 'fit' });
+  }, [markers]);
+
+  return (
+    <View style={styles.container}>
+      <WebView
+        ref={webRef}
+        originWhitelist={['*']}
+        source={{ html }}
+        style={styles.web}
+        onMessage={(e) => {
+          try {
+            const msg = JSON.parse(e.nativeEvent.data || '{}');
+            if (msg.type === 'marker' && onMarkerPress) onMarkerPress(msg.id);
+          } catch {}
+        }}
+        javaScriptEnabled
+        domStorageEnabled
+        scrollEnabled={false}
+        bounces={false}
+      />
+      <Pressable onPress={() => sendToWeb({ type: 'fit' })} style={styles.btn}>
+        <Text style={styles.btnText}>Re‑center</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container:{ flex:1 },
+  web:{ flex:1 },
+  btn:{ position:'absolute', right:12, bottom:12, backgroundColor:'#007aff', borderRadius:18, paddingHorizontal:14, paddingVertical:10 },
+  btnText:{ color:'#fff', fontWeight:'600' }
+});

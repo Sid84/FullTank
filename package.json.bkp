@@ -1,0 +1,10 @@
+{
+  "name": "fulltank",
+  "private": true,
+  "workspaces": ["server", "web", "mobile"],
+  "scripts": {
+    "dev:server": "npm --workspace server run dev",
+    "dev:web": "npm --workspace web run dev",
+    "dev:mobile": "npm --workspace mobile run start"
+  }
+}

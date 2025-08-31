@@ -1,0 +1,436 @@
+{
+  "stations": [
+    {
+      "id": "United Northbridge|31 Fitzgerald St|6",
+      "brand": "United",
+      "name": "United Northbridge",
+      "suburb": "NORTHBRIDGE",
+      "lat": -31.945612,
+      "lng": 115.852438,
+      "prices": {
+        "U91": 1,
+        "P95": 5.2,
+        "P98": 2
+      },
+      "updatedAt": "2025-08-25T01:10:02.579Z",
+      "state": "WA",
+      "source": "USER"
+    },
+    {
+      "id": "Shell Reddy Express West Perth|30 Thomas St|11",
+      "brand": "Reddy Express",
+      "name": "Shell Reddy Express West Perth",
+      "suburb": "WEST PERTH",
+      "lat": -31.945494,
+      "lng": 115.839719,
+      "prices": {
+        "U91": 1.8,
+        "P95": 2,
+        "P98": 2
+      },
+      "updatedAt": "2025-08-14T08:19:37.800Z",
+      "state": "WA",
+      "source": "USER"
+    },
+    {
+      "id": "Shell Reddy Express Perth|480 William St|10",
+      "brand": "Reddy Express",
+      "name": "Shell Reddy Express Perth",
+      "suburb": "PERTH",
+      "lat": -31.940953,
+      "lng": 115.863904,
+      "prices": {
+        "U91": 1.29,
+        "P95": 3,
+        "Diesel": 6
+      },
+      "updatedAt": "2025-08-14T08:38:24.487Z",
+      "state": "WA",
+      "source": "USER"
+    },
+    {
+      "id": "Shell Reddy Express West Perth|30 Thomas St|9",
+      "brand": "Reddy Express",
+      "name": "Shell Reddy Express West Perth",
+      "suburb": "WEST PERTH",
+      "lat": -31.945494,
+      "lng": 115.839719,
+      "prices": {
+        "U91": 1.2
+      },
+      "updatedAt": "2025-08-14T07:43:41.629Z",
+      "state": "WA",
+      "source": "USER"
+    },
+    {
+      "id": "Ampol Foodary East Perth|157 Lord St|4",
+      "brand": "Ampol",
+      "name": "Ampol Foodary East Perth",
+      "suburb": "PERTH",
+      "lat": -31.948689,
+      "lng": 115.869567,
+      "prices": {
+        "U91": 1.9
+      },
+      "updatedAt": "2025-08-14T08:19:57.402Z",
+      "state": "WA",
+      "source": "USER"
+    },
+    {
+      "id": "BP Connect East Perth|68-70 Brown St|7",
+      "brand": "BP",
+      "name": "BP Connect East Perth",
+      "suburb": "EAST PERTH",
+      "lat": -31.95077,
+      "lng": 115.876572,
+      "prices": {
+        "U91": 1.4,
+        "P95": 3,
+        "Diesel": 6
+      },
+      "updatedAt": "2025-08-14T08:38:43.421Z",
+      "state": "WA",
+      "source": "USER"
+    },
+    {
+      "id": "Ampol Foodary Mt Lawley|810 Beaufort St|3",
+      "brand": "Ampol",
+      "name": "Ampol Foodary Mt Lawley",
+      "suburb": "MOUNT LAWLEY",
+      "lat": -31.925179,
+      "lng": 115.881917,
+      "prices": {
+        "Diesel": 5,
+        "P95": 3,
+        "U91": 2
+      },
+      "updatedAt": "2025-08-20T11:55:48.446Z",
+      "state": "WA",
+      "source": "USER"
+    },
+    {
+      "id": "Caltex North Perth|311 Fitzgerald St|5",
+      "brand": "Caltex",
+      "name": "Caltex North Perth",
+      "suburb": "WEST PERTH",
+      "lat": -31.936638,
+      "lng": 115.85796,
+      "prices": {
+        "U91": 2
+      },
+      "updatedAt": "2025-08-20T11:53:33.245Z",
+      "state": "WA",
+      "source": "USER"
+    },
+    {
+      "id": "BP Connect North Perth|349 Charles St|5",
+      "brand": "BP",
+      "name": "BP Connect North Perth",
+      "suburb": "NORTH PERTH",
+      "lat": -31.926673,
+      "lng": 115.851901,
+      "prices": {
+        "U91": 3
+      },
+      "updatedAt": "2025-08-26T12:49:00.193Z",
+      "state": "WA",
+      "source": "USER"
+    }
+  ],
+  "updates": [
+    {
+      "id": "upd_1755155737986",
+      "stationId": "United Northbridge|31 Fitzgerald St|6",
+      "prices": {
+        "U91": 4.2,
+        "P95": 5.2,
+        "P98": 2
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T07:15:37.986Z"
+    },
+    {
+      "id": "upd_1755155792068",
+      "stationId": "Shell Reddy Express West Perth|30 Thomas St|11",
+      "prices": {
+        "U91": 4.2,
+        "P95": 5.2,
+        "P98": 2
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T07:16:32.068Z"
+    },
+    {
+      "id": "upd_1755156062225",
+      "stationId": "Shell Reddy Express Perth|480 William St|10",
+      "prices": {
+        "U91": 1.29,
+        "P95": 1.8
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T07:21:02.225Z"
+    },
+    {
+      "id": "upd_1755156269441",
+      "stationId": "Shell Reddy Express West Perth|30 Thomas St|11",
+      "prices": {
+        "U91": 2,
+        "P95": 2
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T07:24:29.441Z"
+    },
+    {
+      "id": "upd_1755157371259",
+      "stationId": "United Northbridge|31 Fitzgerald St|6",
+      "prices": {
+        "U91": 1.9
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T07:42:51.259Z"
+    },
+    {
+      "id": "upd_1755157382777",
+      "stationId": "Shell Reddy Express West Perth|30 Thomas St|11",
+      "prices": {
+        "U91": 1.4
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T07:43:02.777Z"
+    },
+    {
+      "id": "upd_1755157389428",
+      "stationId": "Shell Reddy Express West Perth|30 Thomas St|11",
+      "prices": {
+        "U91": 1.4
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T07:43:09.428Z"
+    },
+    {
+      "id": "upd_1755157421629",
+      "stationId": "Shell Reddy Express West Perth|30 Thomas St|9",
+      "prices": {
+        "U91": 1.2
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T07:43:41.629Z"
+    },
+    {
+      "id": "upd_1755157518239",
+      "stationId": "United Northbridge|31 Fitzgerald St|6",
+      "prices": {
+        "U91": 1.1
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T07:45:18.239Z"
+    },
+    {
+      "id": "upd_1755157543831",
+      "stationId": "United Northbridge|31 Fitzgerald St|6",
+      "prices": {
+        "U91": 1.2
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T07:45:43.831Z"
+    },
+    {
+      "id": "upd_1755159539272",
+      "stationId": "United Northbridge|31 Fitzgerald St|6",
+      "prices": {
+        "U91": 1.3
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:18:59.272Z"
+    },
+    {
+      "id": "upd_1755159550458",
+      "stationId": "Shell Reddy Express West Perth|30 Thomas St|11",
+      "prices": {
+        "U91": 1.4
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:19:10.458Z"
+    },
+    {
+      "id": "upd_1755159559997",
+      "stationId": "Shell Reddy Express West Perth|30 Thomas St|11",
+      "prices": {
+        "U91": 1.5
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:19:19.997Z"
+    },
+    {
+      "id": "upd_1755159568106",
+      "stationId": "United Northbridge|31 Fitzgerald St|6",
+      "prices": {
+        "U91": 1.6
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:19:28.106Z"
+    },
+    {
+      "id": "upd_1755159577800",
+      "stationId": "Shell Reddy Express West Perth|30 Thomas St|11",
+      "prices": {
+        "U91": 1.8
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:19:37.800Z"
+    },
+    {
+      "id": "upd_1755159597402",
+      "stationId": "Ampol Foodary East Perth|157 Lord St|4",
+      "prices": {
+        "U91": 1.9
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:19:57.402Z"
+    },
+    {
+      "id": "upd_1755159611145",
+      "stationId": "BP Connect East Perth|68-70 Brown St|7",
+      "prices": {
+        "U91": null
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:20:11.145Z"
+    },
+    {
+      "id": "upd_1755159625123",
+      "stationId": "BP Connect East Perth|68-70 Brown St|7",
+      "prices": {
+        "U91": 1.1
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:20:25.123Z"
+    },
+    {
+      "id": "upd_1755159659621",
+      "stationId": "BP Connect East Perth|68-70 Brown St|7",
+      "prices": {
+        "U91": 1.4
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:20:59.621Z"
+    },
+    {
+      "id": "upd_1755160643049",
+      "stationId": "Ampol Foodary Mt Lawley|810 Beaufort St|3",
+      "prices": {
+        "Diesel": 3
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:37:23.049Z"
+    },
+    {
+      "id": "upd_1755160658308",
+      "stationId": "Ampol Foodary Mt Lawley|810 Beaufort St|3",
+      "prices": {
+        "P95": 3,
+        "Diesel": 3
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:37:38.308Z"
+    },
+    {
+      "id": "upd_1755160671792",
+      "stationId": "Ampol Foodary Mt Lawley|810 Beaufort St|3",
+      "prices": {
+        "P95": 3,
+        "Diesel": 5
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:37:51.792Z"
+    },
+    {
+      "id": "upd_1755160679794",
+      "stationId": "Ampol Foodary Mt Lawley|810 Beaufort St|3",
+      "prices": {
+        "P95": 3,
+        "Diesel": 5
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:37:59.794Z"
+    },
+    {
+      "id": "upd_1755160695971",
+      "stationId": "Shell Reddy Express Perth|480 William St|10",
+      "prices": {
+        "P95": 3,
+        "Diesel": 5
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:38:15.971Z"
+    },
+    {
+      "id": "upd_1755160704487",
+      "stationId": "Shell Reddy Express Perth|480 William St|10",
+      "prices": {
+        "P95": 3,
+        "Diesel": 6
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:38:24.487Z"
+    },
+    {
+      "id": "upd_1755160710868",
+      "stationId": "BP Connect East Perth|68-70 Brown St|7",
+      "prices": {
+        "P95": 3,
+        "Diesel": 6
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:38:30.868Z"
+    },
+    {
+      "id": "upd_1755160723421",
+      "stationId": "BP Connect East Perth|68-70 Brown St|7",
+      "prices": {
+        "Diesel": 6
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-14T08:38:43.421Z"
+    },
+    {
+      "id": "upd_1755690813245",
+      "stationId": "Caltex North Perth|311 Fitzgerald St|5",
+      "prices": {
+        "U91": 2
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-20T11:53:33.245Z"
+    },
+    {
+      "id": "upd_1755690948446",
+      "stationId": "Ampol Foodary Mt Lawley|810 Beaufort St|3",
+      "prices": {
+        "U91": 2
+      },
+      "photoUrl": "/uploads/e8e1fa6445f4465303a581a5a75e59aa",
+      "createdAt": "2025-08-20T11:55:48.446Z"
+    },
+    {
+      "id": "upd_1756084202579",
+      "stationId": "United Northbridge|31 Fitzgerald St|6",
+      "prices": {
+        "U91": 1
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-25T01:10:02.579Z"
+    },
+    {
+      "id": "upd_1756212540193",
+      "stationId": "BP Connect North Perth|349 Charles St|5",
+      "prices": {
+        "U91": 3
+      },
+      "photoUrl": null,
+      "createdAt": "2025-08-26T12:49:00.193Z"
+    }
+  ],
+  "alerts": [],
+  "users": [],
+  "history": []
+}
