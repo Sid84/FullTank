@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 export async function saFetchBySuburb({ q, fuel }) {
   const token = process.env.SA_SAFPIS_TOKEN;
   if (!token) return [];
-  const url = `https://api.safuelpricinginformation.com.au/fuel/prices?suburb=${encodeURIComponent(q||'Adelaide')}`;
+  const url = `https://api.safuelpricinginformation.com.au/fuel/prices?suburb=${encodeURIComponent(q || 'Adelaide')}`;
   const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
   if (!res.ok) throw new Error(`SAFPIS HTTP ${res.status}`);
   const data = await res.json();
