@@ -5,6 +5,9 @@ import PlatformMap from '../components/PlatformMap';
 import AddPriceModal from '../components/AddPriceModal';
 import useAppState from '../hooks/useAppState';
 import StationList from '../components/StationList';
+import * as Location from 'expo-location';
+import { getCheapest } from '../utils/getCheapest';
+
 
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE || 'http://10.0.2.2:4000/api';
 const APPLY_FUEL_FILTER = true;
@@ -193,7 +196,31 @@ export default function Home() {
     setMapCenter({ lat, lng });     // <-- what PlatformMap expects
     setFocusKey(k => k + 1);        // <-- triggers focus useEffect
     setViewMode('map');             // <-- show map view
-  }
+  };
+
+  const findCheapestNearby = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Location permission denied');
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({});
+      const coords = { lat: loc.coords.latitude, lng: loc.coords.longitude };
+
+      const cheapest = getCheapest(stations, fuel, coords);
+      if (cheapest) {
+        setSelectedId(cheapest.id);
+        setMapCenter({ lat: cheapest.lat, lng: cheapest.lng });
+        setFocusKey(k => k + 1);
+      } else {
+        alert('No stations found nearby.');
+      }
+    } catch (e) {
+      alert('Error finding cheapest: ' + e.message);
+    }
+  };
+
 
   return (
 
@@ -250,6 +277,23 @@ export default function Home() {
           <Text>{APPLY_FUEL_FILTER ? fuel : 'All'}</Text>
         </Pressable>
       </View> */}
+
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
+          <Pressable
+            onPress={findCheapestNearby}
+            style={{
+              backgroundColor: '#22c55e',
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 6
+            }}
+          >
+            <Text style={{ color: '#0B1117', fontWeight: '700' }}>
+              Cheapest {fuel}
+            </Text>
+          </Pressable>
+        </View>
+
 
         {/* Search + fuel chips */}
         <View style={{ marginTop: spacing(2), flexDirection: 'row', gap: 8 }}>

@@ -34,8 +34,9 @@ const HTML = `
   <script>
     // ===== Map init =====
     var MELBOURNE = [-37.8136, 144.9631];
-    var map = L.map('map', { zoomControl: true, attributionControl: false }).setView(MELBOURNE, 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+    var map = L.map('map', { zoomControl: true, attributionControl: true }).setView(MELBOURNE, 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19,attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
 
     // ===== Cluster group (with safe fallback) =====
     var clusterAvailable = typeof L.markerClusterGroup === 'function';
