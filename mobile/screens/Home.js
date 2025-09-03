@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, ActivityIndicator, Pressable, Alert } from 'react-native';
 import { colors, radii, spacing, fonts } from '../theme';
 import PlatformMap from '../components/PlatformMap';
 import AddPriceModal from '../components/AddPriceModal';
-import useAppState from '../hooks/useAppState';
 import StationList from '../components/StationList';
 import * as Location from 'expo-location';
 import { getCheapest } from '../utils/getCheapest';
@@ -12,7 +11,7 @@ import { getCheapest } from '../utils/getCheapest';
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE || 'http://10.0.2.2:4000/api';
 const APPLY_FUEL_FILTER = true;
 
-export default function Home() {
+function Home(_, ref) {
   const [viewMode, setViewMode] = useState('map'); // 'map' | 'list'
   const [q, setQ] = useState('');
   const [fuel, setFuel] = useState('U91');
@@ -29,8 +28,13 @@ export default function Home() {
   const [mapCenter, setMapCenter] = useState(null); // { lat, lng } | null
   const [focusKey, setFocusKey] = useState(0);
 
-
-  const appState = useAppState();
+  useImperativeHandle(ref, () => ({
+    onAppStateChange(state) {
+      if (state === 'active') {
+        setReloadTick(t => t + 1);
+      }
+    },
+  }));
 
   // Fetch stations (unchanged)
   useEffect(() => {
@@ -167,12 +171,7 @@ export default function Home() {
 
       setShowAdd(false);
       setSelectedId(String(json.station.id));
-
-      // then trigger a refetch to confirm/merge with server
-      const appState = useAppState();
-      useEffect(() => {
-        if (appState === 'active') setReloadTick(t => t + 1); // refresh stations on resume
-      }, [appState]);
+      setReloadTick(t => t + 1);
     } catch (e) {
       Alert.alert('Submit failed', String(e.message || e));
     } finally {
@@ -438,3 +437,5 @@ export default function Home() {
 
   );
 }
+
+export default forwardRef(Home);
