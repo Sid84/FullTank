@@ -12,9 +12,9 @@ import fetch from 'node-fetch';
 
 
 // --- optional adapters (they can stay even if you don't have keys yet)
-import { nswFetchByLocation } from './integrations/nswFuelCheck.js';
+import { nswFetchNearby } from './integrations/nswFuelCheck.js';
 import { waFetchLatest } from './integrations/waFuelWatch.js';
-import { qldFetchLatest } from './integrations/qldFuel.js';
+import { qldGetBrands, qldGetFuelTypes, qldGetRegions, qldFetchStations } from './integrations/qldFuel.js';
 import { saFetchBySuburb } from './integrations/saSafpis.js';
 import { vicFetch } from './integrations/vicServiceVic.js';
 import { fuelpriceFetchBySuburb } from './integrations/fuelpriceAustralia.js';
@@ -22,6 +22,7 @@ import { fuelpriceFetchBySuburb } from './integrations/fuelpriceAustralia.js';
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
+
 
 // uploads
 const __filename = fileURLToPath(import.meta.url);
@@ -32,6 +33,34 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true }); // ← ensure uploads dir exists
 }
 app.use('/uploads', express.static(UPLOAD_DIR));
+
+// Simple request logger so you can see every request hit the server
+app.use((req, _res, next) => {
+  console.log('[REQ]', req.method, req.url);
+  next();
+});
+
+// Promise timeout helper so a slow adapter can't hang the route
+const pTimeout = (p, ms, label) =>
+  Promise.race([
+    p,
+    new Promise((_, rej) =>
+      setTimeout(() => rej(new Error(`timeout:${label}:${ms}ms`)), ms)
+    )
+  ]);
+
+// Collector that NEVER writes to res; it only pushes to the in-memory list
+async function collect(label, promise, bucket) {
+  try {
+    const data = await promise;
+    const arr = Array.isArray(data) ? data : [];
+    console.log(`[${label}] +${arr.length}`);
+    if (arr.length) bucket.push(...arr);
+  } catch (e) {
+    console.warn(`[${label}] adapter failed:`, e?.message || e);
+  }
+}
+
 
 // health
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
@@ -48,114 +77,189 @@ app.get('/api/integrations/status', (req, res) => {
   });
 });
 
+
+app.get('/api/qld/brands', async (req, res) => {
+  try { res.json(await qldGetBrands()); } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+app.get('/api/qld/fuels', async (req, res) => {
+        //console.log(res.json(await qldGetFuelTypes()));
+
+  try { res.json(await qldGetFuelTypes()); } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+// server/src/index.js
+app.get('/api/qld/regions', async (req, res) => {
+  try {
+    const regs = await qldGetRegions();
+    res.json(regs);     // may be array or object — that’s fine for debugging
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+
+// stations (pull from live adapters + merge local store updates)
 // stations (pull from live adapters + merge local store updates)
 app.get('/api/stations', async (req, res) => {
-  const { q = '', fuel = 'U91', state = '' } = req.query;
+  const {
+    q = '',
+    fuel = 'U91',
+    state = '',
+    lat = null,
+    lng = null,
+    radius = ''
+  } = req.query;
+
+  // normalize requested state
+  const wantState = String(state || '').trim().toUpperCase();
+
   const list = [];
-  const want = (s) => !state || s === state.toUpperCase();
-  const push = (arr) => arr && list.push(...arr);
 
-  try {
-    
-    console.log('[WA] Q', q, 'rows');
+  // Build the jobs we actually want to run (based on ?state= and env flags)
+  const jobs = [];
 
-    // 1) Pull live data
-    if (want('VIC') && process.env.ENABLE_VIC_STUB === 'true') {
-      push(await vicFetch({ q, fuel }));
+  // VIC (stub + fallback)
+  if ((wantState === '' || wantState === 'VIC')) {
+    if (process.env.ENABLE_VIC_STUB === 'true') {
+      jobs.push([
+        'VIC',
+        pTimeout(vicFetch({ q, fuel }), 8000, 'VIC')
+      ]);
+    } else if (process.env.ENABLE_FUELPRICE_FALLBACK === 'true') {
+      jobs.push([
+        'FUELPRICE_FALLBACK',
+        pTimeout(fuelpriceFetchBySuburb({ q: q || 'Melbourne', fuel }), 8000, 'FUELPRICE')
+      ]);
     }
-    if (want('VIC') && !list.length && process.env.ENABLE_FUELPRICE_FALLBACK === 'true') {
-      push(await fuelpriceFetchBySuburb({ q: q || 'Melbourne', fuel }));
-    }
-    if (want('NSW') && process.env.ENABLE_NSW === 'true') push(await nswFetchByLocation({ q: q || 'Sydney', fuel }));
-    if (want('TAS') && process.env.ENABLE_NSW === 'true') push(await nswFetchByLocation({ q: q || 'Hobart', fuel }));
-    //if (want('WA')  && process.env.ENABLE_WA  === 'true') push(await waFetchBySuburb({ q: q || 'Perth', fuel }));
-    if (!state || state.toUpperCase() === 'WA') {
-      try {
+  }
+
+  // NSW nearby
+  if ((wantState === '' || wantState === 'NSW') && process.env.ENABLE_NSW === 'true') {
+    jobs.push([
+      'NSW',
+      pTimeout(
+        nswFetchNearby({
+          q: q || '2065',                             // q should be postcode for NSW nearby
+          fuel,
+          lat: lat != null ? Number(lat) : null,
+          lng: lng != null ? Number(lng) : null,
+          radiusKm: radius !== '' ? Number(radius) : ''
+        }),
+        8000,
+        'NSW'
+      )
+    ]);
+  }
+
+  // WA (latest)
+  if ((wantState === '' || wantState === 'WA') && process.env.ENABLE_WA === 'true') {
+    // Use your existing safe()+mapWA path, but wrapped so we don't send res here
+    jobs.push([
+      'WA',
+      (async () => {
         const waRaw = await safe(() => waFetchLatest({ fuel }), 'WA');
-        const wa = waRaw.map(mapWA);        
+        const wa = (waRaw || []).map(mapWA);
         console.log('[WA] fetched', wa?.length, 'rows');
-        list.push(...(wa || []));
-      } catch (e) {
-        console.error('[WA] fetch failed:', e?.message);
-      }
+        return wa;
+      })()
+    ]);
+  }
+
+  // QLD
+  if ((wantState === '' || wantState === 'QLD') && process.env.ENABLE_QLD === 'true') {
+    jobs.push([
+      'QLD',
+      pTimeout(qldFetchStations({ q, fuel }), 8000, 'QLD')
+    ]);
+  }
+
+  // SA
+  if ((wantState === '' || wantState === 'SA') && process.env.ENABLE_SA === 'true') {
+    jobs.push([
+      'SA',
+      pTimeout(saFetchBySuburb({ q: q || 'Adelaide', fuel }), 8000, 'SA')
+    ]);
+  }
+
+  // Run sequentially so logs stay readable (use Promise.all if you prefer)
+  for (const [label, promise] of jobs) {
+    await collect(label, promise, list);
+  }
+
+  // 1) Filter by state (if requested) and by text query (brand/name/suburb)
+  // ---- Smarter filter rules ----
+//wantState = String(state || '').trim().toUpperCase();
+const isPostcodeQuery = /^\d{4}$/.test(String(q || '').trim());
+
+// If query is a postcode (e.g., NSW nearby) or lat/lng provided, we've already
+// filtered upstream; don't apply fuzzy text filtering again.
+const skipTextFilter = isPostcodeQuery || (req.query.lat && req.query.lng);
+
+const filteredList = list
+  .filter(s => !wantState || String(s.state || '').toUpperCase() === wantState)
+  .filter(s => skipTextFilter ? true : matchesQuery(s, q));
+
+  console.log('[AGG] before filter count', list.length, 'after', filteredList.length, 'skipTextFilter', skipTextFilter, 'wantState', wantState);
+
+
+
+  // 2) Merge with local store (your existing logic, unchanged)
+  const store = readStore();
+  const localStations = (store.stations || [])
+    .filter(s => !wantState || String(s.state || '').toUpperCase() === wantState)
+    .filter(s => matchesQuery(s, q));
+
+  const norm = v => String(v || '').trim().toLowerCase();
+  const round5 = n => (Number.isFinite(n) ? Number(n).toFixed(5) : '');
+  const keyOf = s => `${norm(s.state)}|${norm(s.brand)}|${norm(s.name || '')}|${round5(s.lat)}|${round5(s.lng)}`;
+
+  const liveIndex = new Map();
+  for (const s of filteredList) {
+    liveIndex.set(keyOf(s), s);
+  }
+
+  for (const loc of localStations) {
+    const k = keyOf(loc);
+    const hit = liveIndex.get(k);
+    if (hit) {
+      hit.prices = { ...(hit.prices || {}), ...(loc.prices || {}) };
+      const lu = new Date(hit.updatedAt || 0).getTime();
+      const su = new Date(loc.updatedAt || 0).getTime();
+      if (su > lu) hit.updatedAt = loc.updatedAt;
+    } else {
+      liveIndex.set(k, loc);
     }
-    if (want('QLD') && process.env.ENABLE_QLD === 'true') push(await qldFetchLatest({ q: q || 'Brisbane', fuel }));
-    if (want('SA')  && process.env.ENABLE_SA  === 'true') push(await saFetchBySuburb({ q: q || 'Adelaide', fuel }));
+  }
 
-        // 1) External (live) list
-    const filteredList = list
-      .filter(s => !state || s.state === state.toUpperCase())
-      .filter(s => matchesQuery(s, q));
-
-
-
-    // 2) Local store
-    const store = readStore();
-    const localStations = store.stations
-      .filter(s => !state || s.state === state.toUpperCase())
-      .filter(s => matchesQuery(s, q));
-
-    // 3) Build index for fuzzy identity (brand+coords). Round coords so tiny diffs match.
-    const norm = (v) => String(v || '').trim().toLowerCase();
-    const round5 = (n) => (Number.isFinite(n) ? Number(n).toFixed(5) : '');
-    const keyOf = (s) => `${norm(s.state)}|${norm(s.brand)}|${norm(s.name || '')}|${round5(s.lat)}|${round5(s.lng)}`;
-
-    // live index by key (prefer one per place)
-    const liveIndex = new Map();
-    for (const s of filteredList) {
-      liveIndex.set(keyOf(s), s);
-    }
-
-    // 4) Merge local into live: if same place, merge prices & updatedAt; if not found, append local
-    for (const loc of localStations) {
-            const k = keyOf(loc);
-            const hit = liveIndex.get(k);
-            if (hit) {
-              hit.prices = { ...(hit.prices || {}), ...(loc.prices || {}) };
-              const lu = new Date(hit.updatedAt || 0).getTime();
-              const su = new Date(loc.updatedAt || 0).getTime();
-              if (su > lu) hit.updatedAt = loc.updatedAt;
-            } else {
-              liveIndex.set(k, loc);
-            }
-    }
-
-    // 5) Final de-dup by the same key (use the version already merged in liveIndex)
-    //    Also, keep only items that have valid coordinates.
-    const stations = Array.from(liveIndex.values());
+  const stations = Array.from(liveIndex.values());
 
   console.log('[LIVE] filtered count', filteredList.length);
   console.log('[LOCAL] filtered count', localStations.length);
 
-
-    // read ?sort= param
-const sort = (req.query.sort || '').toLowerCase();
-
-if (sort === 'price') {
-  stations.sort((a, b) => {
-    const pa = getLowestPrice(a);
-    const pb = getLowestPrice(b);
-    if (pa == null && pb == null) return 0;
-    if (pa == null) return 1;   // nulls at the end
-    if (pb == null) return -1;
-    return pa - pb;
-  });
-} else if (sort === 'updated') {
-  stations.sort((a, b) => {
-    const ta = new Date(a.updatedAt || 0).getTime();
-    const tb = new Date(b.updatedAt || 0).getTime();
-    return tb - ta; // newest first
-  });
-} else if (sort === 'brand') {
-  stations.sort((a, b) => (a.brand || '').localeCompare(b.brand || ''));
-}
-
-    res.json(stations );
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: String(e.message || e) });
+  // Optional sorting (kept exactly like your version)
+  const sort = (req.query.sort || '').toLowerCase();
+  if (sort === 'price') {
+    stations.sort((a, b) => {
+      const pa = getLowestPrice(a);
+      const pb = getLowestPrice(b);
+      if (pa == null && pb == null) return 0;
+      if (pa == null) return 1;
+      if (pb == null) return -1;
+      return pa - pb;
+    });
+  } else if (sort === 'updated') {
+    stations.sort((a, b) => {
+      const ta = new Date(a.updatedAt || 0).getTime();
+      const tb = new Date(b.updatedAt || 0).getTime();
+      return tb - ta;
+    });
+  } else if (sort === 'brand') {
+    stations.sort((a, b) => (a.brand || '').localeCompare(b.brand || ''));
   }
+
+  // Single, final send
+  return res.json(stations);
 });
+
 
 
 async function safe(fn, label) {
@@ -201,12 +305,18 @@ function getLowestPrice(station) {
 function matchesQuery(station, q) {
   if (!q) return true;
   const query = String(q).toLowerCase();
+
+  // Try to match postcode if present on the station (from adapter)
+  const postcode = (station.postcode || station.P || station.zip || '').toString().toLowerCase();
+
   return (
     (station.suburb && station.suburb.toLowerCase().includes(query)) ||
     (station.brand && station.brand.toLowerCase().includes(query)) ||
-    (station.name && station.name.toLowerCase().includes(query))
+    (station.name && station.name.toLowerCase().includes(query)) ||
+    (postcode && postcode.includes(query))
   );
 }
+
 
 // submit price (with optional photo)
 app.post('/api/stations/:id/price', upload.single('photo'), (req, res) => {
